@@ -1,11 +1,16 @@
 require 'formula'
 
+def relative(name)
+  return name if name.kind_of? Formula
+  File.join(File.split(__FILE__)[0], name) + '.rb'
+end
+
 class AvrLibc < Formula
   url 'http://download.savannah.gnu.org/releases/avr-libc/avr-libc-1.7.1.tar.bz2'
   homepage 'http://www.nongnu.org/avr-libc/'
   md5 '8608061dcff075d44d5c59cb7b6a6f39'
 
-  depends_on './avr-gcc'
+  depends_on relative 'avr-gcc'
 
   # brew's build environment is in our way
   ENV.delete 'CFLAGS'
@@ -21,7 +26,7 @@ class AvrLibc < Formula
   end
 
   def install
-    avr_gcc = Formula.factory('./avr-gcc')
+    avr_gcc = Formula.factory(relative 'avr-gcc')
     build = `./config.guess`.chomp
     system "./configure", "--build=#{build}", "--prefix=#{prefix}", "--host=avr"
     system "make install"

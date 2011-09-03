@@ -4,6 +4,11 @@ def nocxx?
   ARGV.include? '--disable-cxx'
 end
 
+def relative(name)
+  return name if name.kind_of? Formula
+  File.join(File.split(__FILE__)[0], name) + '.rb'
+end
+
 # print avr-gcc's builtin include paths
 # `avr-gcc -print-prog-name=cc1plus` -v
 
@@ -12,7 +17,7 @@ class AvrGcc < Formula
   url 'http://ftp.gnu.org/gnu/gcc/gcc-4.6.1/gcc-4.6.1.tar.bz2'
   md5 'c57a9170c677bf795bdc04ed796ca491'
 
-  depends_on './avr-binutils'
+  depends_on relative 'avr-binutils'
   depends_on 'gmp'
   depends_on 'libmpc'
   depends_on 'mpfr'
@@ -27,7 +32,8 @@ class AvrGcc < Formula
   skip_clean :all
 
   def patches
-    # Progmem problem in C++: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49764
+    # C++ PROGMEM bug in 49764: 
+    # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49764
     # Fixed in upstream cvs
     DATA
   end

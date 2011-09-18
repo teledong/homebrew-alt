@@ -18,6 +18,9 @@ fork of Homebrew itself.
 
 Brews in this repository are broken out as described below.
 
+  * avr:
+    The avr toolchain, avr-binutils, avr-gcc and avr-libc.
+
   * duplicates:
     These brews duplicate OS X functionality, though may provide newer or
     bug-fixed versions.

@@ -51,6 +51,10 @@ class AvrGcc < Formula
     ENV.delete 'NM'
     ENV.delete 'RANLIB'
 
+    if MacOS.lion?
+      ENV['CC'] = 'clang'
+    end
+
     args = [
             "--target=avr",
             "--disable-libssp",

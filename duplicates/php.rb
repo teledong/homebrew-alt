@@ -4,10 +4,14 @@ def mysql_installed?
   `which mysql_config`.length > 0
 end
 
+def postgres_installed?
+  `which pg_config`.length > 0
+end
+
 class Php < Formula
-  url 'http://www.php.net/get/php-5.3.8.tar.gz/from/this/mirror'
+  url 'http://www.php.net/get/php-5.3.8.tar.bz2/from/this/mirror'
   homepage 'http://php.net/'
-  md5 'f4ce40d5d156ca66a996dbb8a0e7666a'
+  md5 '704cd414a0565d905e1074ffdc1fadfb'
   version '5.3.8'
 
   # So PHP extensions don't report missing symbols
@@ -18,40 +22,41 @@ class Php < Formula
   depends_on 'libxml2'
   depends_on 'jpeg'
   depends_on 'mcrypt'
+  depends_on 'gmp' if ARGV.include? '--with-gmp'
 
-  if ARGV.include? '--with-mysql'
+  depends_on 'libevent' if ARGV.include? '--with-fpm'
+  depends_on 'freetds'if ARGV.include? '--with-mssql'
+  depends_on 'icu4c' if ARGV.include? '--with-intl'
+
+  if ARGV.include? '--with-mysql' and ARGV.include? '--with-mariadb'
+    raise "Cannot specify more than one MySQL variant to build against."
+  elsif ARGV.include? '--with-mysql'
     depends_on 'mysql' => :recommended unless mysql_installed?
+  elsif ARGV.include? '--with-mariadb'
+    depends_on 'mariadb' => :recommended unless mysql_installed?
   end
-  if ARGV.include? '--with-fpm'
-    depends_on 'libevent'
-  end
+
   if ARGV.include? '--with-pgsql'
-    depends_on 'postgresql'
-  end
-  if ARGV.include? '--with-mssql'
-    depends_on 'freetds'
-  end
-  if ARGV.include? '--with-intl'
-    depends_on 'icu4c'
+    depends_on 'postgresql' => :recommended unless postgres_installed?
   end
 
   def options
    [
      ['--with-mysql', 'Include MySQL support'],
+     ['--with-mariadb', 'Include MariaDB support'],
      ['--with-pgsql', 'Include PostgreSQL support'],
      ['--with-mssql', 'Include MSSQL-DB support'],
      ['--with-fpm', 'Enable building of the fpm SAPI executable (implies --without-apache)'],
      ['--without-apache', 'Build without shared Apache 2.0 Handler module'],
      ['--with-intl', 'Include internationalization support'],
-     ['--without-readline', 'Build without readline support']
+     ['--without-readline', 'Build without readline support'],
+     ['--with-gmp', 'Include GMP support']
    ]
   end
 
   def patches; DATA; end
 
   def install
-    ENV.O3 # Speed things up
-
     args = [
       "--prefix=#{prefix}",
       "--disable-debug",
@@ -59,7 +64,7 @@ class Php < Formula
       "--with-config-file-scan-dir=#{etc}/php5/conf.d",
       "--with-iconv-dir=/usr",
       "--enable-dba",
-      "--enable-ndbm=/usr",
+      "--with-ndbm=/usr",
       "--enable-exif",
       "--enable-soap",
       "--enable-sqlite-utf8",
@@ -97,8 +102,11 @@ class Php < Formula
       "--with-gettext=#{Formula.factory('gettext').prefix}",
       "--with-snmp=/usr",
       "--with-tidy",
+      "--with-mhash",
       "--mandir=#{man}"
     ]
+
+    args.push "--with-gmp" if ARGV.include? '--with-gmp'
 
     # Enable PHP FPM
     if ARGV.include? '--with-fpm'
@@ -108,7 +116,7 @@ class Php < Formula
     # Build Apache module by default
     unless ARGV.include? '--with-fpm' or ARGV.include? '--without-apache'
       args.push "--with-apxs2=/usr/sbin/apxs"
-      args.push "--libexecdir=#{prefix}/libexec"
+      args.push "--libexecdir=#{libexec}"
     end
 
     if ARGV.include? '--with-mysql'
@@ -140,7 +148,7 @@ class Php < Formula
       # Use Homebrew prefix for the Apache libexec folder
       inreplace "Makefile",
         "INSTALL_IT = $(mkinstalldirs) '$(INSTALL_ROOT)/usr/libexec/apache2' && $(mkinstalldirs) '$(INSTALL_ROOT)/private/etc/apache2' && /usr/sbin/apxs -S LIBEXECDIR='$(INSTALL_ROOT)/usr/libexec/apache2' -S SYSCONFDIR='$(INSTALL_ROOT)/private/etc/apache2' -i -a -n php5 libs/libphp5.so",
-        "INSTALL_IT = $(mkinstalldirs) '#{prefix}/libexec/apache2' && $(mkinstalldirs) '$(INSTALL_ROOT)/private/etc/apache2' && /usr/sbin/apxs -S LIBEXECDIR='#{prefix}/libexec/apache2' -S SYSCONFDIR='$(INSTALL_ROOT)/private/etc/apache2' -i -a -n php5 libs/libphp5.so"
+        "INSTALL_IT = $(mkinstalldirs) '#{libexec}/apache2' && $(mkinstalldirs) '$(INSTALL_ROOT)/private/etc/apache2' && /usr/sbin/apxs -S LIBEXECDIR='#{libexec}/apache2' -S SYSCONFDIR='$(INSTALL_ROOT)/private/etc/apache2' -i -a -n php5 libs/libphp5.so"
     end
 
     if ARGV.include? '--with-intl'
@@ -150,6 +158,7 @@ class Php < Formula
     end
 
     system "make"
+    ENV.deparallelize # parallel install fails on some systems
     system "make install"
 
     etc.install "./php.ini-production" => "php.ini" unless File.exists? etc+"php.ini"
@@ -157,17 +166,17 @@ class Php < Formula
 
  def caveats; <<-EOS
 For 10.5 and Apache:
-    Apache needs to run in 32-bit mode. You can either force Apache to start 
+    Apache needs to run in 32-bit mode. You can either force Apache to start
     in 32-bit mode or you can thin the Apache executable.
 
 To enable PHP in Apache add the following to httpd.conf and restart Apache:
-    LoadModule php5_module    #{prefix}/libexec/apache2/libphp5.so
+    LoadModule php5_module    #{libexec}/apache2/libphp5.so
 
 The php.ini file can be found in:
     #{etc}/php.ini
 
 'Fix' the default PEAR permissions and config:
-    chmod -R ug+w #{prefix}/lib/php
+    chmod -R ug+w #{lib}/php
     pear config-set php_ini #{etc}/php.ini
    EOS
  end
@@ -195,3 +204,14 @@ diff -Naur php-5.3.2/ext/tidy/tidy.c php/ext/tidy/tidy.c
  #include "buffio.h"
  
  /* compatibility with older versions of libtidy */
+
+--- a/ext/mssql/php_mssql.h	2010-12-31 21:19:59.000000000 -0500
++++ b/ext/mssql/php_mssql.h	2011-10-12 10:06:52.000000000 -0400
+@@ -65,7 +65,6 @@
+ #define dbfreelogin dbloginfree
+ #endif
+ #define dbrpcexec dbrpcsend
+-typedef unsigned char	*LPBYTE;
+ typedef float           DBFLT4;
+ #else
+ #define MSSQL_VERSION "7.0"

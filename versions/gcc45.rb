@@ -41,7 +41,7 @@ end
 
 class Gcc45 < Formula
   homepage 'http://gcc.gnu.org'
-  url 'ftp://ftp.gnu.org/gnu/gcc/gcc-4.5.3/gcc-4.5.3.tar.bz2'
+  url 'http://ftpmirror.gnu.org/gcc/gcc-4.5.3/gcc-4.5.3.tar.bz2'
   md5 '8e0b5c12212e185f3e4383106bfa9cc6'
 
   depends_on 'gmp'
@@ -97,6 +97,12 @@ class Gcc45 < Formula
     ]
 
     args << '--disable-nls' unless nls?
+    # This is required on systems running a version newer than 10.6. Failure to
+    # use this flag can result in segfauts when using C++ strings.
+    #
+    # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41645
+    # http://newartisans.com/2009/10/a-c-gotcha-on-snow-leopard
+    args << '--enable-fully-dynamic-string' unless MacOS.leopard?
 
     if build_everything?
       # Everything but Ada, which requires a pre-existing GCC Ada compiler

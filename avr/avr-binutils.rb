@@ -15,6 +15,10 @@ class AvrBinutils < Formula
 
     ENV['CPPFLAGS'] = "-I#{include}"
 
+    if MacOS.lion?
+      ENV['CC'] = 'clang'
+    end
+
     args = ["--prefix=#{prefix}",
             "--infodir=#{info}",
             "--mandir=#{man}",

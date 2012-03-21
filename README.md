@@ -1,88 +1,50 @@
-# Overview
+Homebrew-alt
+============
+This repository contains "unofficial" formulae for [Homebrew](https://github.com/mxcl/homebrew).
 
-This repository contains **unofficial** formulae for [Homebrew](https://github.com/mxcl/homebrew).
+ATTN: the `duplicates` and `versions` directories have been moved to their own repositories:
 
-(This replaces the `Homebrew Duplicates` branch that used to live under [adamv's
-main Homebrew fork](https://github.com/adamv/homebrew).)
+ * [homebrew-dupes][]
+ * [homebrew-versions][]
 
+Installing Homebrew-alt Formulae
+--------------------------------
+Just `brew tap adamv/alt` and then `brew install <formula>`.
 
-## Quick Start
+If the formula conflicts with one in mxcl/master, you can `brew install adamv/alt/<formula>`.
 
-To install homebrew-alt formulae, use one of the following:
-
- * `brew install [raw GitHub URL]`
- * `brew install [full path to formula from your local homebrew-alt clone]`
-
-For more details, see below: "Installing homebrew-alt Formulae".
-
-# How This Repository Is Organized
-
-  *   **avr**<br>
-      The avr toolchain, avr-binutils, avr-gcc and avr-libc.
-
-  *   **duplicates**<br>
-      These brews duplicate OS X functionality, though may provide newer or
-      bug-fixed versions.  
-
-      (Homebrew policy discourages duplicates, except in some specific cases.)
-
-  *   **versions**<br>
-      These formulae provide mulitple versions of the same software package.
-
-      (Homebrew policy is to maintain a single, stable version of a given
-      package.)
-
-  *   **binary**<br>
-      These formulae provide binary-only installations.
-
-  *   **non-free**<br>
-      These formulae provide non-free software.
-
-  *   **other**<br>
-      Other formulae that haven't been accepted into master.
-
-
-
-# Installing homebrew-alt Formulae
-
-There are two methods to install packages from this repository.
-
-
-## Method 1: Raw URL
-
-First, find the raw URL for the formula you want. For example, the raw URL for
-the `princexml` formula is:
+You can also install via URL:
 
 ```
-    https://github.com/adamv/homebrew-alt/raw/master/non-free/princexml.rb
+brew install https://raw.github.com/adamv/homebrew-alt/master/<directory>/<formula>.rb
 ```
 
+Categories
+----------
+  * **fonts**  
 
-Once you know the raw URL, simply use `brew install [raw URL]`, like so:
+  * **head-only**  
+  Formulae that provide only the latest development HEAD.
 
-```
-    brew install https://github.com/adamv/homebrew-alt/raw/master/non-free/princexml.rb
-```
+  * **mono**  
 
+  * **non-free**  
+  Formulae that provide non-free software.
 
-## Method 2: Repository Clone
+  * **other**  
+  Miscellaneous formulae that do not meet the criteria for acceptance into mxcl/master.
 
-First, clone this repository.  Be sure to choose a good location!  
+  * **unmaintained**  
+  Formulae for abandoned and unmaintained software.
 
-For example, clone to `LibraryAlt` under `/usr/local`:
+  * **avr**
+  Formulae for AVR tools. AVR is a family of popular microcontrollers, used 
+  for example in the Arduino open hardware project
 
-```
-    git clone https://github.com/adamv/homebrew-alt.git /usr/local/LibraryAlt
-```
+Docs
+----
+`brew help`, `man brew`, or the Homebrew [wiki][].
 
-
-Once you've got your clone, simply use `brew install [full path to formula]`.
-
-For example, to install `princexml`:
-
-```
-    brew install /usr/local/LibraryAlt/non-free/princexml.rb
-```
-
-
-That's it!
+[wiki]:http://wiki.github.com/mxcl/homebrew
+[homebrew-dupes]:https://github.com/Homebrew/homebrew-dupes
+[homebrew-versions]:https://github.com/Homebrew/homebrew-versions
